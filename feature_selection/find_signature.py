@@ -38,6 +38,11 @@ labels_train   = labels_train[:150]
 
 
 ### your code goes here
+import sklearn.tree
+clf = sklearn.tree.DecisionTreeClassifier()
+clf.fit(features_train, labels_train)
+clf.feature_importances_.argmax() #get the most important word index
+vectorizer.get_feature_names()[14343] # get its string
 
 
 

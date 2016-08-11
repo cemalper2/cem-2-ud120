@@ -36,6 +36,16 @@ def Draw(pred, features, poi, mark_poi=False, name="image.png", f1_name="feature
     plt.savefig(name)
     plt.show()
 
+def Querydata(feature):
+    max_exercised_opt = 0
+    min_exercised_opt = 1e9
+    for dict_entry in data_dict:
+        if not type(data_dict[dict_entry][feature])==str:
+            if data_dict[dict_entry][feature]>max_exercised_opt:
+                max_exercised_opt = data_dict[dict_entry][feature]
+            if data_dict[dict_entry][feature]<min_exercised_opt:
+                min_exercised_opt = data_dict[dict_entry][feature]
+    return (max_exercised_opt, min_exercised_opt)
 
 
 ### load in the dict of dicts containing all the data on each person in the dataset
@@ -48,6 +58,7 @@ data_dict.pop("TOTAL", 0)
 ### can be any key in the person-level dictionary (salary, director_fees, etc.) 
 feature_1 = "salary"
 feature_2 = "exercised_stock_options"
+feature_3 = "total_payments"
 poi  = "poi"
 features_list = [poi, feature_1, feature_2]
 data = featureFormat(data_dict, features_list )
@@ -64,10 +75,14 @@ plt.show()
 
 ### cluster here; create predictions of the cluster labels
 ### for the data and store them to a list called pred
-
-
-
-
+from sklearn import cluster
+from sklearn.preprocessing import MinMaxScaler
+clus = cluster.KMeans(n_clusters = 2)
+clus.fit(data[:,1:3])
+pred = clus.predict(data[:,1:3])
+print Querydata("salary")
+scaler = MinMaxScaler()
+scaler.fit(data[:,1:3])
 ### rename the "name" parameter when you change the number of features
 ### so that the figure gets saved to a different file
 try:
