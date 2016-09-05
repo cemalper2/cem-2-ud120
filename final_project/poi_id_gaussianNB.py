@@ -22,9 +22,7 @@ from sklearn.cross_validation import StratifiedShuffleSplit
 #features_list = ['poi','salary','bonus','exercised_stock_options'] # You will need to use more features
 features_list = ['poi', 'salary', 'deferral_payments', 'total_payments', 'bonus', 'restricted_stock_deferred',
             'deferred_income', 'total_stock_value', 'expenses', 'exercised_stock_options', 
-            'long_term_incentive', 'restricted_stock','director_fees', 'from_poi_to_this_person',
-            'from_this_person_to_poi', 'shared_receipt_with_poi','from_to_ratio','poi_ratio']
-### Load the dictionary containing the dataset
+            'long_term_incentive', 'restricted_stock', 'from_this_person_to_poi','from_poi_to_this_person','shared_receipt_with_poi']### Load the dictionary containing the dataset
 with open("final_project_dataset.pkl", "r") as data_file:
     data_dict = pickle.load(data_file)
 
@@ -37,13 +35,25 @@ data_dict.pop('BHATNAGAR SANJAY', 0)
 data_dict.pop('LAVORATO JOHN J', 0)
 
 
-#data_dict.pop('DELAINEY DAVID W', 0)
-
 
 ### Task 3: Create new feature(s)
+#for person in data_dict:
+#    if not (np.isnan(float(data_dict[person]['from_this_person_to_poi'])) or np.isnan(float(data_dict[person]['from_poi_to_this_person']))): 
+#        data_dict[person]['total_poi_messages'] = data_dict[person]['from_poi_to_this_person'] + data_dict[person]['from_this_person_to_poi']
+#    else:
+#        data_dict[person]['total_poi_messages'] = 'NaN'
+
+#for person in data_dict:
+#    if not (np.isnan(float(data_dict[person]['from_this_person_to_poi'])) or np.isnan(float(data_dict[person]['from_poi_to_this_person']))): 
+#        try:
+#            data_dict[person]['from_to_ratio'] = float(data_dict[person]['from_poi_to_this_person']) / data_dict[person]['from_this_person_to_poi']
+#        except: 
+#            data_dict[person]['from_to_ratio'] = 'NaN'
+#    else:
+#        data_dict[person]['from_to_ratio'] = 'NaN'
 
 for person in data_dict:
-    if not (np.isnan(float(data_dict[person]['from_this_person_to_poi'])) or np.isnan(float(data_dict[person]['from_poi_to_this_person']))): 
+    if not (np.isnan(float(data_dict[person]['from_this_person_to_poi'])) or np.isnan(float(data_dict[person]['from_poi_to_this_person'])) or np.isnan(float(data_dict[person]['from_poi_to_this_person']))): 
         try:
             data_dict[person]['from_to_ratio'] = float(data_dict[person]['from_poi_to_this_person']) / data_dict[person]['from_this_person_to_poi']
         except: 
@@ -51,18 +61,7 @@ for person in data_dict:
     else:
         data_dict[person]['from_to_ratio'] = 'NaN'
 
-for person in data_dict:
-    if not (np.isnan(float(data_dict[person]['from_this_person_to_poi'])) or np.isnan(float(data_dict[person]['from_poi_to_this_person'])) or np.isnan(float(data_dict[person]['from_messages'])) or np.isnan(float(data_dict[person]['to_messages']))): 
-        try:
-            data_dict[person]['poi_ratio'] = float(data_dict[person]['from_poi_to_this_person'] +  data_dict[person]['from_this_person_to_poi']) / (data_dict[person]['from_poi_to_this_person'] +  data_dict[person]['from_this_person_to_poi'] + data_dict[person]['to_messages'] +  data_dict[person]['from_messages'])
-        except: 
-            data_dict[person]['poi_ratio'] = 'NaN'
-    else:
-        data_dict[person]['poi_ratio'] = 'NaN'
 
-
-
-pca = decomposition.PCA(n_components = 8)
 ### Store to my_dataset for easy export below.
 my_dataset = data_dict
 ### Extract features and labels from dataset for local testing
@@ -83,13 +82,11 @@ from sklearn.svm  import SVC
 from sklearn.feature_selection import SelectKBest
 from sklearn import cluster
 from sklearn.pipeline import Pipeline
+
 scaler = StandardScaler()
-k_means = cluster.KMeans(n_clusters = 2)
 clf3 = GaussianNB()
+pca = decomposition.PCA(n_components = 8)
 clf = Pipeline(steps=[('scaler',scaler), ('pca', pca), ('k_means', clf3)])
-clf2= DecisionTreeClassifier(min_samples_split = 7, criterion = 'entropy')
-#clf = Pipeline(steps=[('scaler',scaler), ('pca', pca), ('k_means', clf2)])
-#clf2 = SVC(kernel = 'rbf', C = 1, gamma = 10)
 
 ### Task 5: Tune your classifier to achieve better than .3 precision and recall 
 ### using our testing script. Check the tester.py script in the final project
@@ -196,36 +193,36 @@ print confusion_matrix(labels_test, pred)
 ## INITIAL TRY END ##
 
 
-# SVC TRIAL BEGIN #
-# low C: more support, tries to fit more (overfitting), high gamma: points influence region too low (i.e. islands of decision surfaces, overfitting ?)
-svc_obj = SVC(kernel = 'sigmoid', class_weight = 'balanced', C = 400, gamma = 8e-3, shrinking = True, degree=3)
-pca = decomposition.PCA(n_components = 16)
-scaler = StandardScaler()
-clf = Pipeline(steps=[('scaler', scaler), ('pca', pca), ('svc_obj', svc_obj)])
-clf.fit(features_train,labels_train)
-pred = clf.predict(features_test)
-print classification_report(labels_test, pred)
-print confusion_matrix(labels_test, pred)
-print "SVC: %0.3f" % (clf.score(features_test,labels_test))
+## SVC TRIAL BEGIN ##
+#clf = SVC(kernel = 'rbf', C = 1e7, gamma = 1e-5) # low C: more support, tries to fit more (overfitting), high gamma: points influence region too low (i.e. islands of decision surfaces, overfitting ?)
+#svc_obj = SVC(kernel = 'rbf', class_weight = 'balanced', C = 1e7, gamma = 1e-9)
+#pca = decomposition.PCA()
+#scaler = MinMaxScaler(feature_range = (-1, 1))
+#clf = Pipeline(steps=[('scaler', scaler), ('pca', pca), ('svc_obj', svc_obj)])
+#clf.fit(features_train,labels_train)
+#pred = clf.predict(features_test)
+#print classification_report(labels_test, pred)
+#print confusion_matrix(labels_test, pred)
+#print"SVC: %0.3f" % (clf.score(features_test_pca,labels_test))
 ## SVC TRIAL END ##
 
 
 # GRID SEARCH BEGIN ## 
+#kernel = ['linear']
 #svc_obj = SVC(class_weight = 'balanced')
 #pca = decomposition.PCA()
 #scaler = StandardScaler()
 #clf = Pipeline(steps=[('scaler',scaler), ('pca', pca), ('svc_obj', svc_obj)])
-#cv = StratifiedShuffleSplit(labels, n_iter=10, random_state=42)
+#cv = StratifiedShuffleSplit(labels, n_iter=5, random_state=42)
 #
-#n_comp = range(7,18,1)
-#kernel = ['sigmoid']
-#C = np.linspace(1,19, num=19)*1e2
-##C = np.logspace(-2, 5, 8)
-##gamma = [1e-9, 1e-8]
-#gamma = np.linspace(1,19, num=19)*1e-3
+#
+#C = [1e-5,1, 1e3, 1e4, 1e5, 1e6]
+#C = np.logspace(-2, 10, 13)
+#gamma = [1e-9, 1e-8]
+#gamma = np.logspace(-13, 0, 14)
 #         
 #estimator = GridSearchCV(clf,
-#                         param_grid = dict(pca__n_components = n_comp, svc_obj__kernel = kernel,
+#                         param_grid = dict(svc_obj__kernel = kernel,
 #                              svc_obj__C = C, svc_obj__gamma = gamma), scoring = 'f1', cv = cv)
 #estimator.fit(features, labels)
 #print "SVC with PCA and grid search: %0.3f" % (estimator.score(features,labels))
@@ -265,7 +262,7 @@ print "SVC: %0.3f" % (clf.score(features_test,labels_test))
 ## OLD GRID SEARCH END ##
 
 
-#clf = clf2;
+#clf = clf3;
 ### Task 6: Dump your classifier, dataset, and features_list so anyone can
 ### check your results. You do not need to change anything below, but make sure
 ### that the version of poi_id.py that you submit can be run on its own and

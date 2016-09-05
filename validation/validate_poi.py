@@ -12,8 +12,10 @@
 
 import pickle
 import sys
+import numpy as np
 sys.path.append("../tools/")
 from feature_format import featureFormat, targetFeatureSplit
+from sklearn import cross_validation
 
 data_dict = pickle.load(open("../final_project/final_project_dataset.pkl", "r") )
 
@@ -28,5 +30,12 @@ labels, features = targetFeatureSplit(data)
 
 
 ### it's all yours from here forward!  
-
+features_train, features_test, labels_train, labels_test = cross_validation.train_test_split(features, labels, random_state = 0, test_size = 0.4)
+kf = cross_validation.KFold(n=len(features), n_folds=5, shuffle=True,random_state=None)
+len(kf)
+print(kf)  
+for train_index, test_index in kf:
+    print("TRAIN:", train_index, "TEST:", test_index)
+    X_train, X_test = features[train_index], features[test_index]
+    y_train, y_test = labels[train_index], labels[test_index]
 

@@ -15,9 +15,9 @@ def outlierCleaner(predictions, ages, net_worths):
     cleaned_data = sorted(error, key = lambda tup: tup[2])
     print cleaned_data[0:9]
     print (math.floor(len(cleaned_data)*0.1))
-    cleaned_data = cleaned_data[:(len(cleaned_data) - int(math.floor(len(cleaned_data)*0.1)))]
     ### your code goes here
-
+    cleaned_data = cleaned_data[:(len(cleaned_data) - int(math.floor(len(cleaned_data)*0.1)))]
+    
     
     return cleaned_data
 
