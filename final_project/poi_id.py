@@ -15,15 +15,21 @@ from sklearn.metrics import confusion_matrix
 from sklearn.metrics import f1_score
 from sklearn.preprocessing import StandardScaler
 from sklearn.cross_validation import StratifiedShuffleSplit
-
+from sklearn.feature_selection import SelectPercentile, f_classif
 ### Task 1: Select what features you'll use.
 ### features_list is a list of strings, each of which is a feature name.
 ### The first feature must be "poi".
 #features_list = ['poi','salary','bonus','exercised_stock_options'] # You will need to use more features
-features_list = ['poi', 'salary', 'deferral_payments', 'total_payments', 'bonus', 'restricted_stock_deferred',
-            'deferred_income', 'total_stock_value', 'expenses', 'exercised_stock_options', 
-            'long_term_incentive', 'restricted_stock','director_fees', 'from_poi_to_this_person',
-            'from_this_person_to_poi', 'shared_receipt_with_poi','from_to_ratio','poi_ratio']
+#features_list = ['poi', 'salary', 'deferral_payments', 'total_payments', 'bonus', 'restricted_stock_deferred',
+#            'deferred_income', 'total_stock_value', 'expenses', 'exercised_stock_options', 
+#            'long_term_incentive', 'restricted_stock','director_fees', 'from_poi_to_this_person',
+#            'from_this_person_to_poi', 'shared_receipt_with_poi','from_to_ratio','poi_ratio']
+            
+features_list = ['poi','salary', 'deferral_payments', 'total_payments', 'loan_advances', 'bonus', 
+                 'restricted_stock_deferred', 'deferred_income', 'total_stock_value', 'expenses', 
+                 'exercised_stock_options', 'other', 'long_term_incentive', 'restricted_stock', 'director_fees',
+                 'from_poi_to_this_person','from_this_person_to_poi','from_to_ratio', 'shared_receipt_with_poi']
+
 ### Load the dictionary containing the dataset
 with open("final_project_dataset.pkl", "r") as data_file:
     data_dict = pickle.load(data_file)
@@ -62,7 +68,6 @@ for person in data_dict:
 
 
 
-pca = decomposition.PCA(n_components = 8)
 ### Store to my_dataset for easy export below.
 my_dataset = data_dict
 ### Extract features and labels from dataset for local testing
@@ -83,11 +88,14 @@ from sklearn.svm  import SVC
 from sklearn.feature_selection import SelectKBest
 from sklearn import cluster
 from sklearn.pipeline import Pipeline
+
+pca = decomposition.PCA(n_components = 8)
 scaler = StandardScaler()
 k_means = cluster.KMeans(n_clusters = 2)
 clf3 = GaussianNB()
-clf = Pipeline(steps=[('scaler',scaler), ('pca', pca), ('k_means', clf3)])
-clf2= DecisionTreeClassifier(min_samples_split = 7, criterion = 'entropy')
+clf2= DecisionTreeClassifier(min_samples_split = 5)
+clf = Pipeline(steps=[('scaler',scaler), ('pca', pca), ('k_means', k_means)])
+clf = Pipeline(steps=[('scaler',scaler), ('pca', pca), ('decision_tree', k_means)])
 #clf = Pipeline(steps=[('scaler',scaler), ('pca', pca), ('k_means', clf2)])
 #clf2 = SVC(kernel = 'rbf', C = 1, gamma = 10)
 
@@ -198,15 +206,20 @@ print confusion_matrix(labels_test, pred)
 
 # SVC TRIAL BEGIN #
 # low C: more support, tries to fit more (overfitting), high gamma: points influence region too low (i.e. islands of decision surfaces, overfitting ?)
-svc_obj = SVC(kernel = 'sigmoid', class_weight = 'balanced', C = 400, gamma = 8e-3, shrinking = True, degree=3)
-pca = decomposition.PCA(n_components = 16)
-scaler = StandardScaler()
-clf = Pipeline(steps=[('scaler', scaler), ('pca', pca), ('svc_obj', svc_obj)])
-clf.fit(features_train,labels_train)
-pred = clf.predict(features_test)
-print classification_report(labels_test, pred)
-print confusion_matrix(labels_test, pred)
-print "SVC: %0.3f" % (clf.score(features_test,labels_test))
+#svc_obj = SVC(kernel = 'sigmoid', class_weight = 'balanced', C = 400, gamma = 8e-3, shrinking = True, degree=3)
+#pca = decomposition.PCA(n_components = 18)
+#scaler = StandardScaler()
+#selector = SelectPercentile(f_classif, percentile=100)
+#clf = Pipeline(steps=[('selector', selector), ('scaler', scaler), ('pca', pca), ('svc_obj', svc_obj)])
+#clf.fit(features_train,labels_train)
+#features_scores = []
+#for ind,feat in enumerate(clf.steps[0][1].scores_):
+#    features_scores.append((features_list[ind + 1],feat))
+#features_scores = sorted(features_scores, key=lambda x: x[1])
+#pred = clf.predict(features_test)
+#print classification_report(labels_test, pred)
+#print confusion_matrix(labels_test, pred)
+#print "SVC: %0.3f" % (clf.score(features_test,labels_test))
 ## SVC TRIAL END ##
 
 

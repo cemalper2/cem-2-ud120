@@ -20,10 +20,14 @@ from sklearn.feature_selection import SelectPercentile, f_classif
 ### features_list is a list of strings, each of which is a feature name.
 ### The first feature must be "poi".
 #features_list = ['poi','salary','bonus','exercised_stock_options'] # You will need to use more features
-features_list = ['poi','salary', 'deferral_payments', 'total_payments', 'loan_advances', 'bonus', 
-                 'restricted_stock_deferred', 'deferred_income', 'total_stock_value', 'expenses', 
-                 'exercised_stock_options', 'other', 'long_term_incentive', 'restricted_stock', 'director_fees',
-                 'from_poi_to_this_person','from_this_person_to_poi','poi_ratio', 'shared_receipt_with_poi']
+#features_list = ['poi','salary', 'deferral_payments', 'total_payments', 'loan_advances', 'bonus', 
+#                 'restricted_stock_deferred', 'deferred_income', 'total_stock_value', 'expenses', 
+#                 'exercised_stock_options', 'other', 'long_term_incentive', 'restricted_stock', 'director_fees',
+#                 'from_poi_to_this_person','from_this_person_to_poi','poi_ratio','from_to_ratio', 'shared_receipt_with_poi']
+features_list = ['poi', 'salary', 'deferral_payments', 'total_payments', 'bonus', 'restricted_stock_deferred',
+            'deferred_income', 'total_stock_value', 'expenses', 'exercised_stock_options', 
+            'long_term_incentive', 'restricted_stock', 'from_this_person_to_poi','from_poi_to_this_person','shared_receipt_with_poi','poi_ratio','from_to_ratio']### Load the dictionary containing the dataset
+
 
 ### Load the dictionary containing the dataset
 with open("final_project_dataset.pkl", "r") as data_file:
@@ -91,8 +95,8 @@ from sklearn.pipeline import Pipeline
 
 scaler = StandardScaler()
 clf3 = GaussianNB()
-pca = decomposition.PCA(n_components = 9)
-selector = SelectPercentile(f_classif, percentile=100)
+pca = decomposition.PCA()
+selector = SelectKBest(f_classif, k = 'all')
 clf = Pipeline(steps=[('selector',selector), ('scaler',scaler), ('pca', pca), ('k_means', clf3)])
 
 ### Task 5: Tune your classifier to achieve better than .3 precision and recall 
@@ -173,6 +177,12 @@ features_train, features_test, labels_train, labels_test = \
 
 ## K-MEANS TRIAL BEGIN ##
 clf.fit(features_train,labels_train)
+features_scores = []
+for ind,feat in enumerate(clf.steps[0][1].scores_):
+    features_scores.append((features_list[ind + 1],feat))
+features_scores = sorted(features_scores, key=lambda x: x[1], reverse = True)
+for feat in features_scores:
+    print(feat[0] + '\\' + str(feat[1]))
 pred = clf.predict(features_test)
 print classification_report(labels_test, pred)
 print confusion_matrix(labels_test, pred)
@@ -213,24 +223,26 @@ print confusion_matrix(labels_test, pred)
 #print"SVC: %0.3f" % (clf.score(features_test_pca,labels_test))
 ## SVC TRIAL END ##
 
-
-# GRID SEARCH BEGIN ## 
-#kernel = ['linear']
-#svc_obj = SVC(class_weight = 'balanced')
+#
+##PCA + GaussianNB GRID SEARCH BEGIN ## 
+#nb_obj = GaussianNB()
 #pca = decomposition.PCA()
+#selector = SelectKBest(f_classif)
 #scaler = StandardScaler()
-#clf = Pipeline(steps=[('scaler',scaler), ('pca', pca), ('svc_obj', svc_obj)])
-#cv = StratifiedShuffleSplit(labels, n_iter=5, random_state=42)
+#clf = Pipeline(steps=[('selector',selector),('scaler',scaler), ('pca', pca), ('nb_obj', nb_obj)])
+#cv = StratifiedShuffleSplit(labels, n_iter=100, random_state=42)
+#
+##n_components = range(14,20)
+##kernel = ['rbf','sigmoid']
+##C = np.logspace(-2, 3, 6)
+##gamma = np.logspace(-3, 0, 4)
 #
 #
-#C = [1e-5,1, 1e3, 1e4, 1e5, 1e6]
-#C = np.logspace(-2, 10, 13)
-#gamma = [1e-9, 1e-8]
-#gamma = np.logspace(-13, 0, 14)
-#         
+#n_components = range(8,16)
+#k = range(8,16)
+#
 #estimator = GridSearchCV(clf,
-#                         param_grid = dict(svc_obj__kernel = kernel,
-#                              svc_obj__C = C, svc_obj__gamma = gamma), scoring = 'f1', cv = cv)
+#                         param_grid = dict(pca__n_components = n_components, selector__k = k), scoring = 'precision', cv = cv, error_score = 0)
 #estimator.fit(features, labels)
 #print "SVC with PCA and grid search: %0.3f" % (estimator.score(features,labels))
 ##clf.score(features_test_pca,labels_test)
@@ -239,7 +251,71 @@ print confusion_matrix(labels_test, pred)
 #print classification_report(labels, pred)
 #print confusion_matrix(labels, pred)
 #clf = estimator.best_estimator_
-## GRID SEARCH END ## 
+###PCA + Gaussian NB GRID SEARCH END ## 
+
+##PCA + SVC GRID SEARCH BEGIN ## 
+#svc_obj = SVC(class_weight = 'balanced')
+#pca = decomposition.PCA()
+#selector = SelectKBest(f_classif)
+#scaler = StandardScaler()
+#clf = Pipeline(steps=[('selector',selector),('scaler',scaler), ('pca', pca), ('svc_obj', svc_obj)])
+#cv = StratifiedShuffleSplit(labels, n_iter=100, random_state=42)
+#
+##n_components = range(14,20)
+##kernel = ['rbf','sigmoid']
+##C = np.logspace(-2, 3, 6)
+##gamma = np.logspace(-3, 0, 4)
+#
+#
+#k = range(8,16)
+#n_components = range(8,16)
+#kernel = ['sigmoid','rbf']
+#C = [1e1,1e2,1e3,1e4,1e5]
+#gamma = np.logspace(-12, 3, 6)
+#
+#estimator = GridSearchCV(clf,
+#                         param_grid = dict(svc_obj__kernel = kernel,
+#                              svc_obj__C = C, svc_obj__gamma = gamma, selector__k = k, pca__n_components = n_components), scoring = 'precision', cv = cv, error_score=0)
+#estimator.fit(features, labels)
+#print "SVC with PCA and grid search: %0.3f" % (estimator.score(features,labels))
+##clf.score(features_test_pca,labels_test)
+#print estimator.best_params_
+#pred = estimator.predict(features)
+#print classification_report(labels, pred)
+#print confusion_matrix(labels, pred)
+#clf = estimator.best_estimator_
+###PCA + GaussianNB GRID SEARCH END ## 
+
+
+
+
+#PCA + DT GRID SEARCH BEGIN ## 
+dt_obj = DecisionTreeClassifier(class_weight = 'balanced')
+pca = decomposition.PCA()
+scaler = StandardScaler()
+selector = SelectKBest(f_classif)
+clf = Pipeline(steps=[('selector',selector),('pca',pca),('scaler',scaler), ('dt_obj', dt_obj)])
+cv = StratifiedShuffleSplit(labels, n_iter=100, random_state=42)
+
+n_components = range(5,20)
+k = range(5,20)
+min_samples_split = range(1,11,2)         
+min_samples_leaf = range(1,11,2)         
+estimator = GridSearchCV(clf,
+                         param_grid = dict(pca__n_components = n_components, dt_obj__min_samples_split = min_samples_split, 
+                                           dt_obj__min_samples_leaf = min_samples_leaf,
+                                           selector__k = k), scoring = 'precision', cv = cv, error_score = 0)
+estimator.fit(features, labels)
+print "SVC with PCA and grid search: %0.3f" % (estimator.score(features,labels))
+#clf.score(features_test_pca,labels_test)
+print estimator.best_params_
+pred = estimator.predict(features)
+print classification_report(labels, pred)
+print confusion_matrix(labels, pred)
+clf = estimator.best_estimator_
+##PCA + DT GRID SEARCH END ## 
+
+
 
 #
 #plt.axvline(estimator.best_estimator_.named_steps['pca'].n_components,

@@ -52,14 +52,24 @@ data_dict.pop('LAVORATO JOHN J', 0)
 #    else:
 #        data_dict[person]['from_to_ratio'] = 'NaN'
 
+
 for person in data_dict:
-    if not (np.isnan(float(data_dict[person]['from_this_person_to_poi'])) or np.isnan(float(data_dict[person]['from_poi_to_this_person'])) or np.isnan(float(data_dict[person]['from_poi_to_this_person']))): 
+    if not (np.isnan(float(data_dict[person]['from_this_person_to_poi'])) or np.isnan(float(data_dict[person]['from_poi_to_this_person']))): 
         try:
             data_dict[person]['from_to_ratio'] = float(data_dict[person]['from_poi_to_this_person']) / data_dict[person]['from_this_person_to_poi']
         except: 
             data_dict[person]['from_to_ratio'] = 'NaN'
     else:
         data_dict[person]['from_to_ratio'] = 'NaN'
+
+for person in data_dict:
+    if not (np.isnan(float(data_dict[person]['from_this_person_to_poi'])) or np.isnan(float(data_dict[person]['from_poi_to_this_person'])) or np.isnan(float(data_dict[person]['from_messages'])) or np.isnan(float(data_dict[person]['to_messages']))): 
+        try:
+            data_dict[person]['poi_ratio'] = float(data_dict[person]['from_poi_to_this_person'] +  data_dict[person]['from_this_person_to_poi']) / (data_dict[person]['from_poi_to_this_person'] +  data_dict[person]['from_this_person_to_poi'] + data_dict[person]['to_messages'] +  data_dict[person]['from_messages'])
+        except: 
+            data_dict[person]['poi_ratio'] = 'NaN'
+    else:
+        data_dict[person]['poi_ratio'] = 'NaN'
 
 
 ### Store to my_dataset for easy export below.
